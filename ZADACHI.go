@@ -1,39 +1,32 @@
 package main
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-)
+import "fmt"
+
+func Intersection(a, b []int) ([]int, bool) {
+	intersectMap := make(map[int]bool)
+	var intersectionSlice []int
+	for _, i := range a {
+		intersectMap[i] = true
+	}
+	for _, j := range b {
+		if intersectMap[j] == true {
+			intersectionSlice = append(intersectionSlice, j)
+		}
+	}
+	if intersectionSlice == nil {
+		return nil, false
+	} else {
+		return intersectionSlice, true
+	}
+}
 
 func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
+	a := []int{65, 3, 58, 678, 64}
+	b := []int{64, 2, 3, 43}
+	result, flag := Intersection(a, b)
+	if flag == true {
+		fmt.Println(result)
+	} else {
+		fmt.Println("Intersection not found")
 	}
-	fmt.Println(text)
-	runeText := []rune(text)
-
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
-
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
-
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
 }
