@@ -1,39 +1,63 @@
 package main
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-)
+import "fmt"
 
-func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
+type StringIntMap struct {
+	data map[string]int
+}
+
+func (s *StringIntMap) Add(key string, value int) {
+	s.data[key] = value
+}
+func (s *StringIntMap) Remove(key string) {
+	delete(s.data, key)
+}
+func (s *StringIntMap) Copy() map[string]int {
+	copy := make(map[string]int)
+	for key, value := range s.data {
+		copy[key] = value
 	}
-	fmt.Println(text)
-	runeText := []rune(text)
+	return copy
+}
+func (s *StringIntMap) Exists(key string) bool {
+	_, exist := s.data[key]
+	return exist
+}
+func (s *StringIntMap) Get(key string) (int, bool) {
+	value, exist := s.data[key]
+	if exist {
+		return value, true
+	} else {
+		return 0, false
+	}
+}
+func main() {
+	karta := StringIntMap{
+		data: make(map[string]int),
+	}
+	karta.Add("Formula", 1)
+	karta.Add("Boeing", 747)
+	karta.Add("VAZ", 2101)
+	karta.Add("T", 90)
+	fmt.Println(karta.data)
 
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
+	karta.Remove("VAZ")
+	fmt.Println(karta.data)
 
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
+	copiedKarta := karta.Copy()
+	fmt.Println("This is copy of original karta:", copiedKarta)
 
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
+	existedValue := karta.Exists("Boeing")
+	if existedValue == true {
+		fmt.Println("Boeing 747 is existed")
+	} else {
+		fmt.Println("Boeing RIP")
+	}
+
+	geittingValue, exist := karta.Get("Formula")
+	if exist {
+		fmt.Println("Formula -", geittingValue)
+	} else {
+		fmt.Println("Enything")
+	}
 }
