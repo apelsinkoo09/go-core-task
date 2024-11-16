@@ -1,39 +1,24 @@
 package main
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-)
+import "fmt"
+
+func Duplicate(s1 []string, s2 []string) []string {
+	dup := make(map[string]bool)
+	var s3 []string
+	for _, i := range s2 {
+		dup[i] = true
+	}
+	for _, j := range s1 {
+		if dup[j] != true {
+			s3 = append(s3, j)
+		}
+	}
+	return s3
+}
 
 func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
-	}
-	fmt.Println(text)
-	runeText := []rune(text)
-
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
-
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
-
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
+	slice1 := []string{"apple", "banana", "cherry", "date", "43", "lead", "gno1"}
+	slice2 := []string{"banana", "date", "fig"}
+	slice3 := Duplicate(slice1, slice2)
+	fmt.Println(slice3)
 }
