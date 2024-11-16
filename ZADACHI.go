@@ -1,39 +1,58 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
+	"math/rand"
 )
 
-func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
+func sliceExample(slice []int) []int {
+	var evenSlice []int
+	for _, i := range slice {
+		if i%2 == 0 {
+			evenSlice = append(evenSlice, i)
+		}
 	}
-	fmt.Println(text)
-	runeText := []rune(text)
+	return evenSlice
+}
 
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
+func addElements(slice []int, a int) []int {
+	var newSlice []int
+	newSlice = append(slice, a)
+	return newSlice
+}
 
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
+func copySlice(slice []int) []int {
+	copiedSlice := slice
+	return copiedSlice
+}
 
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
+func removeElement(slice []int, a int) ([]int, error) {
+	element := a
+	if element >= len(slice) {
+		return nil, fmt.Errorf("Invalid input")
+	} else {
+		newElement := append(slice[:element], slice[element+1:]...)
+		return newElement, nil
+	}
+}
+
+func main() {
+	var originalSlice []int
+	for i := 0; i < 10; i++ {
+		a := rand.Intn(100)
+		originalSlice = append(originalSlice, a)
+	}
+	fmt.Println(originalSlice)
+	evenSlice := sliceExample(originalSlice)
+	fmt.Println(evenSlice)
+	newSlice := addElements(originalSlice, 5)
+	fmt.Println(newSlice)
+	copiedSlice := copySlice(originalSlice)
+	fmt.Println(copiedSlice)
+	deletedElementSLice, err := removeElement(originalSlice, 3)
+	if err != nil {
+		fmt.Errorf("Failed to delete item:", err)
+	} else {
+		fmt.Println(deletedElementSLice)
+	}
 }
