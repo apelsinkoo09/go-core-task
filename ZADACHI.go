@@ -1,39 +1,51 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
+	"time"
 )
 
-func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
+type CustomWaitGroup struct {
+	semaphore chan struct{} // подсчет количества задач
+	done      chan struct{} // уведомление о завершении задач
+}
+
+func (wg *CustomWaitGroup) Add() {
+	wg.semaphore <- struct{}{} // добавление задачи в канал
+}
+
+func (wg *CustomWaitGroup) Done() {
+	<-wg.semaphore // извлечение задачи из канала
+	if len(wg.semaphore) == 0 {
+		close(wg.done) // сигнал о пустом канале
 	}
-	fmt.Println(text)
-	runeText := []rune(text)
+}
 
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
+func (wg *CustomWaitGroup) Wait() {
+	<-wg.done
+}
 
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
+func NewCustomWaitGroup() *CustomWaitGroup {
+	return &CustomWaitGroup{
+		semaphore: make(chan struct{}, 100),
+		done:      make(chan struct{}),
+	}
+}
 
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
+func main() {
+	wg := NewCustomWaitGroup()
+
+	for i := 0; i < 5; i++ {
+		wg.Add()
+
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("Task %d started\n", i)
+			time.Sleep(time.Second)
+			fmt.Printf("Task %d finished\n", i)
+		}(i)
+	}
+
+	wg.Wait() // Ждём завершения всех задач
+	fmt.Println("All tasks completed")
 }
