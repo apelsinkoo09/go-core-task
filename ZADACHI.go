@@ -1,39 +1,36 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
+	"math/rand"
 )
 
-func main() {
-	a := 42
-	b := 052
-	c := 0x2A
-	d := 3.14
-	e := "Golang"
-	f := true
-	g := 1 + 2i
-	variables := []interface{}{a, b, c, d, e, f, g}
-	var text string
-	for _, varType := range variables {
-		//fmt.Println("Type", reflect.TypeOf(varType))
-		fmt.Printf("Type %T of %#v\n", varType, varType)
-		symbol := fmt.Sprintf("%v", varType)
-		text += symbol
+func writeToChan(ch1 chan uint8) {
+	for i := 0; i < 10; i++ {
+		num := rand.Intn(100)
+		numU8 := uint8(num)
+		ch1 <- numU8
 	}
-	fmt.Println(text)
-	runeText := []rune(text)
+	close(ch1)
+}
 
-	mid := len(runeText) / 2
-	runeTextFinal := append(runeText[:mid])
-	runeTextFinal = append([]rune("go_2204"))
-	runeTextFinal = append(runeText[mid+1:])
+func convertToFloat64InCube(ch1 chan uint8, ch2 chan float64) {
+	for num := range ch1 {
+		numF := float64(num)
+		numCube := numF * numF * numF
+		ch2 <- numCube
+	}
+	close(ch2)
+}
 
-	fmt.Println(runeText)
-	finalText := string(runeTextFinal)
+func main() {
+	ch1 := make(chan uint8)
+	ch2 := make(chan float64)
 
-	hasher := sha256.New()
-	hasher.Write([]byte(finalText))
-	fmt.Println(hex.EncodeToString(hasher.Sum(nil)))
+	go writeToChan(ch1)
+	go convertToFloat64InCube(ch1, ch2)
+
+	for result := range ch2 {
+		fmt.Println(result)
+	}
 }
