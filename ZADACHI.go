@@ -3,34 +3,78 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 )
 
-func writeToChan(ch1 chan uint8) {
-	for i := 0; i < 10; i++ {
-		num := rand.Intn(100)
-		numU8 := uint8(num)
-		ch1 <- numU8
+func getNumberOfChannels() (int, error) {
+	var num int
+	_, err := fmt.Scan(&num)
+	if err != nil {
+		return 0, fmt.Errorf("Invalud input, try again")
 	}
-	close(ch1)
+	switch {
+	case num < 0:
+		return 0, fmt.Errorf("Negative number, try again")
+	case num > 10:
+		return 0, fmt.Errorf("Too much value, try again")
+	}
+
+	return num, nil
 }
 
-func convertToFloat64InCube(ch1 chan uint8, ch2 chan float64) {
-	for num := range ch1 {
-		numF := float64(num)
-		numCube := numF * numF * numF
-		ch2 <- numCube
+func randValueGen(numOfChannel int, ch chan int) {
+	val := rand.Intn(10)
+	ch <- val
+	close(ch)
+}
+
+func merge(channels []chan int) chan int {
+	var wg sync.WaitGroup
+	mergedChannel := make(chan int)
+
+	out := func(i <-chan int) {
+		for j := range i {
+			mergedChannel <- j
+		}
+		wg.Done()
 	}
-	close(ch2)
+
+	wg.Add(len(channels))
+	for _, b := range channels {
+		go out(b)
+	}
+	go func() {
+		wg.Wait()
+		close(mergedChannel)
+	}()
+	return mergedChannel
 }
 
 func main() {
-	ch1 := make(chan uint8)
-	ch2 := make(chan float64)
+	var numOfChannels int
+	var err error
 
-	go writeToChan(ch1)
-	go convertToFloat64InCube(ch1, ch2)
+	for {
+		fmt.Println("Enter number of channels to 10:")
+		numOfChannels, err = getNumberOfChannels()
+		if err != nil {
+			fmt.Println("Error:", err)
+			continue
+		}
+		break
+	}
+	fmt.Println("Number of channels = ", numOfChannels)
 
-	for result := range ch2 {
-		fmt.Println(result)
+	chs := make([]chan int, numOfChannels)
+
+	for i := 0; i < numOfChannels; i++ {
+		chs[i] = make(chan int)
+		go randValueGen(i, chs[i])
+	}
+
+	result := merge(chs)
+	fmt.Print("Data from channels: ")
+	for num := range result {
+		fmt.Print(num)
 	}
 }
